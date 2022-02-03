@@ -38,7 +38,7 @@ const app = {
         // Récupérer la valeur du <select> (id du videogame)
         videoGameId = evt.target.selectedIndex;
         // Vider le contenu de div#review
-
+        document.querySelector('#review').innerHTML = "";
         // charger les données pour ce videogame
         app.loadReviewFromApi();
         //console.log(videogameDomElement);
@@ -74,15 +74,6 @@ const app = {
             .then(app.addReviewFromApi);
     },
 
-    addReviewFromApi: function (reviewFromApi) {
-        console.log(reviewFromApi);
-        for (const review of reviewFromApi) {
-            if (review.videogame_id === videoGameId) {
-                console.log(review);
-            }
-        }
-    },
-
     loadSingleVideoGame: function (id) {
         // Charger toutes les données des videogames
         // Ajouter une balise <option> par videogame
@@ -112,6 +103,18 @@ const app = {
     // ####################################################################
     //                              DOM
     // ####################################################################
+
+    addReviewFromApi: function (reviewFromApi) {
+        divReviewElement = document.querySelector('#review');
+        for (const review of reviewFromApi) {
+            if (review.videogame_id === videoGameId) {
+                console.log(review);
+                const newReviewTemplate = document.querySelector('#reviewTemplate');
+                const newReviewElement = newReviewTemplate.content.firstElementChild.cloneNode(true);
+                divReviewElement.append(newReviewElement);
+            }
+        }
+    },
 };
 
 document.addEventListener('DOMContentLoaded', app.init);
