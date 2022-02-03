@@ -54,7 +54,7 @@ class VideogameController extends CoreController
             // Retrieve all related Reviews (thanks to Relationships)
             // $reviews = $item->reviews->load(['videogame', 'platform']);
             // But, relationships with videogame & plaftorm are not configured yet
-            $reviews = $item->reviews;
+            $reviews = $item->reviews->load('platform')->load('videogame');
 
             // Return JSON of this list
             return $this->sendJsonResponse($reviews, 200);

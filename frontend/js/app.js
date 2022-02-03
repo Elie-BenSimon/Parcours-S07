@@ -2,8 +2,6 @@ const app = {
     // api's url without endpoint
     apiUrl: 'http://localhost:8080',
 
-    videoGameId: null,
-
     // select videogames element
     selectVideogameElement: document.querySelector('#videogameId'),
 
@@ -66,20 +64,18 @@ const app = {
             .then(
                 function (response) {
                     if (response.status == 201) {
+                        $('#addVideogameModal').modal('hide');
+                        alert('jeu vidéo ajouté');
                         return response.json();
+                    }
+                    else {
+                        alert('le jeu n\'a pas été ajouté, veuillez renseigner les champs correctement');
                     }
                 }
             )
             .then(
                 function (newTaskObject) {
                     app.addVideoGameInList(newTaskObject);
-                    /*
-                    // Appel de la méthode pour créer une nouvelle tâche
-                    const newTask = task.createTaskElement(newTaskObject.title, newTaskCategoryName, newTaskObject.id, newTaskObject.completion);
-
-                    //  On rattache la nouvelle tâche dans le DOM
-                    taskList.insertTaskIntoTasksList(newTask);
-                    */
                 }
             )
     },
@@ -90,11 +86,7 @@ const app = {
         // Vider le contenu de div#review
         document.querySelector('#review').innerHTML = "";
         // charger les données pour ce videogame
-        app.loadReviewFromApi();
-        //console.log(videogameDomElement);
-        // Dupliquer la template #reviewTemplate et personnaliser son contenu avec les données
-
-        // Ajouter dans le DOM
+        app.loadReviewFromApi(videoGameId);
     },
 
     handleClickToAddVideogame: function (evt) {
@@ -108,7 +100,7 @@ const app = {
     //                              AJAX
     // ####################################################################
 
-    loadReviewFromApi: function () {
+    loadReviewFromApi: function (id) {
         // On prépare la configuration de la requête HTTP
         let config = {
             method: 'GET',
@@ -117,7 +109,7 @@ const app = {
         };
 
         // 1 - Attaquer l'API
-        fetch(app.apiUrl + '/reviews', config)
+        fetch(app.apiUrl + '/videogames/' + id + '/reviews', config)
             .then(function (apiResponse) {
                 return apiResponse.json();
             })
@@ -167,24 +159,27 @@ const app = {
     addReviewFromApi: function (reviewFromApi) {
         // Selection of div review's container
         divReviewElement = document.querySelector('#review');
-
+        
         for (const review of reviewFromApi) {
-            // if the review belong to the selected videogame, we add it to the dom
-            if (review.videogame_id === videoGameId) {
-                // Template selection and modification
-                const newReviewTemplate = document.querySelector('#reviewTemplate');
-                const newReviewElement = newReviewTemplate.content.firstElementChild.cloneNode(true);
-                newReviewElement.querySelector('.reviewTitle').textContent = review.title;
-                newReviewElement.querySelector('.reviewText').textContent = review.text;
-                newReviewElement.querySelector('.reviewAuthor').textContent = review.author;
-                newReviewElement.querySelector('.reviewPublication').textContent = review.publication_date;
-                newReviewElement.querySelector('.reviewDisplay').textContent = review.display_note;
-                newReviewElement.querySelector('.reviewGameplay').textContent = review.gameplay_note;
-                newReviewElement.querySelector('.reviewScenario').textContent = review.scenario_note;
-                newReviewElement.querySelector('.reviewLifetime').textContent = review.lifetime_note;
+            // Template selection and cloning
+            const newReviewTemplate = document.querySelector('#reviewTemplate');
+            const newReviewElement = newReviewTemplate.content.firstElementChild.cloneNode(true);
 
-                divReviewElement.append(newReviewElement);
-            }
+            // Modification of the new element
+            newReviewElement.querySelector('.reviewTitle').textContent = review.title;
+            newReviewElement.querySelector('.reviewText').textContent = review.text;
+            newReviewElement.querySelector('.reviewAuthor').textContent = review.author;
+            newReviewElement.querySelector('.reviewPublication').textContent = review.publication_date;
+            newReviewElement.querySelector('.reviewDisplay').textContent = review.display_note;
+            newReviewElement.querySelector('.reviewGameplay').textContent = review.gameplay_note;
+            newReviewElement.querySelector('.reviewScenario').textContent = review.scenario_note;
+            newReviewElement.querySelector('.reviewLifetime').textContent = review.lifetime_note;
+            
+            newReviewElement.querySelector('.reviewVideogame').textContent = review.videogame.name;
+            newReviewElement.querySelector('.reviewEditor').textContent = review.videogame.editor;
+            newReviewElement.querySelector('.reviewPlatform').textContent = review.platform.name;
+
+            divReviewElement.append(newReviewElement);
         }
     },
 
@@ -195,7 +190,7 @@ const app = {
         }
     },
 
-    addVideoGameInList: function(newVideogame) {
+    addVideoGameInList: function (newVideogame) {
         optionElement = document.createElement('option');
         optionElement.value = newVideogame.id;
         optionElement.text = newVideogame.name;
