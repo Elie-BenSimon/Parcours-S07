@@ -1,22 +1,20 @@
 const app = {
-    // URL de l'API (sans le endpoint)
+    // api's url without endpoint
     apiUrl: 'http://localhost:8080',
 
     videoGameId: null,
 
-    // On récupère l'élément <select> des jeux vidéo
+    // select videogames element
     selectVideogameElement: document.querySelector('#videogameId'),
 
     init: function () {
         console.log('app.init()');
 
-        // On appelle la méthode s'occupant d'ajouter les EventListener sur les éléments déjà dans le DOM
+        // methods to add every eventlistener to our dom elements
         app.addAllEventListeners();
 
-        // On appelle la méthode s'occupant de charger tous les jeux vidéo
+        // retrieving all videogames from db
         app.loadVideoGames();
-
-        //app.loadReviewFromApi();
     },
 
 
@@ -25,14 +23,65 @@ const app = {
     // ####################################################################
 
     addAllEventListeners: function () {
-        // On ajoute l'écouteur pour l'event "change", et on l'attache à la méthode app.handleVideogameSelected
+        // event listener on "change", with app.handleVideogameSelected callback function
         app.selectVideogameElement.addEventListener('change', app.handleVideogameSelected)
-        // On récupère le bouton pour ajouter un jeu vidéo
+        // add a videogame button
         const addVideogameButtonElement = document.getElementById('btnAddVideogame');
-        // On ajoute l'écouteur pour l'event "click"
+        // eventlistener on click
         addVideogameButtonElement.addEventListener('click', app.handleClickToAddVideogame);
+        // add a videogame form selection
+        addVideogameFormElement = document.querySelector('#addVideogameForm');
+        // eventistener on form submission
+        addVideogameFormElement.addEventListener('submit', app.handleFormSubmit);
+    },
 
-        // TODO
+    handleFormSubmit: function (event) {
+        event.preventDefault();
+        const newVideogameFormElement = event.currentTarget;
+        const videogameTitleElement = newVideogameFormElement.querySelector('#inputName');
+        const newVideogameTitle = videogameTitleElement.value;
+
+        const videogameEditorElement = newVideogameFormElement.querySelector('#inputEditor');
+        const newVideogameEditor = videogameEditorElement.value;
+
+        const data = {
+            "name": newVideogameTitle,
+            "editor": newVideogameEditor,
+        }
+
+        console.log(data);
+
+        const httpHeaders = new Headers();
+        httpHeaders.append("Content-Type", "application/json");
+
+        let config = {
+            method: 'POST',
+            mode: 'cors',
+            cache: 'no-cache',
+            headers: httpHeaders,
+            body: JSON.stringify(data)
+        };
+
+        fetch(app.apiUrl + "/videogames", config)
+            .then(
+                function (response) {
+                    if (response.status == 201) {
+                        return response.json();
+                    }
+                }
+            )
+            .then(
+                function (newTaskObject) {
+                    app.addVideoGameInList(newTaskObject);
+                    /*
+                    // Appel de la méthode pour créer une nouvelle tâche
+                    const newTask = task.createTaskElement(newTaskObject.title, newTaskCategoryName, newTaskObject.id, newTaskObject.completion);
+
+                    //  On rattache la nouvelle tâche dans le DOM
+                    taskList.insertTaskIntoTasksList(newTask);
+                    */
+                }
+            )
     },
 
     handleVideogameSelected: function (evt) {
@@ -142,12 +191,16 @@ const app = {
     // add videogames to the select element
     addVideogamesFromApi: function (videogamesFromApi) {
         for (const videogame of videogamesFromApi) {
-            optionElement = document.createElement('option');
-            optionElement.value = videogame.id;
-            optionElement.text = videogame.name;
-            app.selectVideogameElement.append(optionElement);
+            app.addVideoGameInList(videogame);
         }
-    }
+    },
+
+    addVideoGameInList: function(newVideogame) {
+        optionElement = document.createElement('option');
+        optionElement.value = newVideogame.id;
+        optionElement.text = newVideogame.name;
+        app.selectVideogameElement.append(optionElement);
+    },
 };
 
 document.addEventListener('DOMContentLoaded', app.init);
