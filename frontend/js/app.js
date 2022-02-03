@@ -4,6 +4,9 @@ const app = {
 
     videoGameId: null,
 
+    // On récupère l'élément <select> des jeux vidéo
+    selectVideogameElement: document.querySelector('#videogameId'),
+
     init: function () {
         console.log('app.init()');
 
@@ -11,7 +14,7 @@ const app = {
         app.addAllEventListeners();
 
         // On appelle la méthode s'occupant de charger tous les jeux vidéo
-        //app.loadVideoGames();
+        app.loadVideoGames();
 
         //app.loadReviewFromApi();
     },
@@ -22,10 +25,8 @@ const app = {
     // ####################################################################
 
     addAllEventListeners: function () {
-        // On récupère l'élément <select> des jeux vidéo
-        selectVideogameElement = document.querySelector('#videogameId');
         // On ajoute l'écouteur pour l'event "change", et on l'attache à la méthode app.handleVideogameSelected
-        selectVideogameElement.addEventListener('change', app.handleVideogameSelected)
+        app.selectVideogameElement.addEventListener('change', app.handleVideogameSelected)
         // On récupère le bouton pour ajouter un jeu vidéo
         const addVideogameButtonElement = document.getElementById('btnAddVideogame');
         // On ajoute l'écouteur pour l'event "click"
@@ -67,7 +68,7 @@ const app = {
         };
 
         // 1 - Attaquer l'API
-        fetch(app.apiUrl + '/reviews' , config)
+        fetch(app.apiUrl + '/reviews', config)
             .then(function (apiResponse) {
                 return apiResponse.json();
             })
@@ -75,9 +76,6 @@ const app = {
     },
 
     loadSingleVideoGame: function (id) {
-        // Charger toutes les données des videogames
-        // Ajouter une balise <option> par videogame
-
         // On prépare la configuration de la requête HTTP
         let config = {
             method: 'GET',
@@ -90,13 +88,26 @@ const app = {
             .then(function (apiResponse) {
                 return apiResponse.json();
             })
-            .then(function(videogame) {
+            .then(function (videogame) {
                 console.log(videogame);
             });
-            return videogame;
+        return videogame;
     },
 
-    addVideogameFromApi: function (videogame) {
+    loadVideoGames: function () {
+        // On prépare la configuration de la requête HTTP
+        let config = {
+            method: 'GET',
+            mode: 'cors',
+            cache: 'no-cache'
+        };
+
+        // 1 - Attaquer l'API
+        fetch(app.apiUrl + '/videogames', config)
+            .then(function (apiResponse) {
+                return apiResponse.json();
+            })
+            .then(app.addVideogamesFromApi);
     },
 
 
@@ -105,16 +116,38 @@ const app = {
     // ####################################################################
 
     addReviewFromApi: function (reviewFromApi) {
+        // Selection of div review's container
         divReviewElement = document.querySelector('#review');
+
         for (const review of reviewFromApi) {
+            // if the review belong to the selected videogame, we add it to the dom
             if (review.videogame_id === videoGameId) {
-                console.log(review);
+                // Template selection and modification
                 const newReviewTemplate = document.querySelector('#reviewTemplate');
                 const newReviewElement = newReviewTemplate.content.firstElementChild.cloneNode(true);
+                newReviewElement.querySelector('.reviewTitle').textContent = review.title;
+                newReviewElement.querySelector('.reviewText').textContent = review.text;
+                newReviewElement.querySelector('.reviewAuthor').textContent = review.author;
+                newReviewElement.querySelector('.reviewPublication').textContent = review.publication_date;
+                newReviewElement.querySelector('.reviewDisplay').textContent = review.display_note;
+                newReviewElement.querySelector('.reviewGameplay').textContent = review.gameplay_note;
+                newReviewElement.querySelector('.reviewScenario').textContent = review.scenario_note;
+                newReviewElement.querySelector('.reviewLifetime').textContent = review.lifetime_note;
+
                 divReviewElement.append(newReviewElement);
             }
         }
     },
+
+    // add videogames to the select element
+    addVideogamesFromApi: function (videogamesFromApi) {
+        for (const videogame of videogamesFromApi) {
+            optionElement = document.createElement('option');
+            optionElement.value = videogame.id;
+            optionElement.text = videogame.name;
+            app.selectVideogameElement.append(optionElement);
+        }
+    }
 };
 
 document.addEventListener('DOMContentLoaded', app.init);

@@ -8,6 +8,19 @@ use Illuminate\Http\Request;
 class VideogameController extends CoreController
 {
     /**
+     * /videogames
+     * GET
+     */
+    public function list()
+    {
+        // Get all items
+        $list = Videogame::all();
+
+        // Return JSON of this list
+        return $this->sendJsonResponse($list, 200);
+    }
+
+    /**
      * /videogames/[id]
      * GET
      */

@@ -14,6 +14,14 @@
 // --------- VIDEOGAMES ---------
 
 $router->get(
+    'videogames',
+    [
+        'as' => 'videogame-list',
+        'uses' => 'VideogameController@list'
+    ]
+);
+
+$router->get(
     'videogames/{id}',
     [
         'as' => 'videogame-read',
